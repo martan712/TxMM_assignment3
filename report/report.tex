@@ -26,7 +26,7 @@
 }]
 
 \section{Introduction and data}
-In this paper we train a model to do authorship attribution. Our data is a fragment of the PAN2020 dataset \footnote{\href{https://pan.webis.de/clef20/pan20-web/author-identification.html}{https://pan.webis.de/clef20/pan20-web/author-identification.html}}. The dataset contains fanfiction texts by 20 different authors. To create a model that can automatically predict whether 2 texts were written by the same author, we set up a feature extractor, followed by some classification model. By choosing our features inteligently, and processing them properly, a fairly simple classifier achieves great performance on this task.
+In this paper we train a model to do authorship attribution. Our data is a fragment of the PAN2020 dataset \footnote{\href{https://pan.webis.de/clef20/pan20-web/author-identification.html}{https://pan.webis.de/clef20/pan20-web/author-identification.html}}. The dataset contains fanfiction texts by 20 different authors. To create a model that can automatically predict which of these 20 authors wrote a given snippet, we set up a feature extractor, followed by some classification model. By choosing our features intelligently, and processing them properly, a fairly simple classifier achieves great performance on this task.
 
 \section{Features}
 
@@ -69,9 +69,8 @@ For normalization, character counts are divided by the character count, lexical 
 \section{Classifier}
 For the classification task, we evaluated several models: a Linear Support Vector Classifier (SVC), a Logistic Regression Model (LRM), and a Random Forest (RF), all implemented using the scikit-learn library. Since many of the input features operate on different scales, and some of these models are sensitive to differences in feature magnitude, we standardized the features using scikit-learn's StandardScaler. This transformation centers each feature around zero and scales it to unit variance. Feature scaling massively improved the F1-score on the development set, as expected.
 
-During early tests, the models had not yet been fully tuned. To improve the performance of the final model, the next step was therefore to optimize the \textit{C} parameter, which controls the degree of regularization applied to the model weights. Since both the SVC and LRM outperformed the RF model, we continued with these two models. In addition to achieving better performance, they are also simpler than the RF model. The results of this tuning process are presented in \ref{fig:c}.
+During early tests, the models had not yet been fully tuned. To improve the performance of the final model, the next step was therefore to optimize the \textit{C} parameter, which controls the degree of regularization applied to the model weights. Since both the SVC and LRM outperformed the RF model, we continued with these two models. In addition to achieving better performance, they are also simpler than the RF model. The results of this tuning process are presented in Figure~\ref{fig:c}.
 
-\
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\columnwidth]{tuning_c.png}
@@ -81,13 +80,13 @@ During early tests, the models had not yet been fully tuned. To improve the perf
 
 
 \section{Results}
-Throughout this report, we will evaluate our classifer with the macro-F1 score, the mean F1 over all authors:
+Throughout this report, we will evaluate our classifier with the macro-F1 score, the mean F1 over all authors:
 \[
     F_1 = \frac{1}{N} \sum_{a=1}^{N} \frac{2 P_a R_a}{P_a + R_a},
 \]
 where $P_a$ and $R_a$ are the precision and recall for author $a$, and $N = 20$ is the total number of authors.
 
-Standardization is essential for the linear models. Without scaling, the SVC and LRM achieved macro-F1 scores of only 0.731 and 0.386 respectively on the development set. In contrast, the RF model remained unaffected, achieving a macro-F1 score of 0.890. However, after applying the scaler and retaining the default model settings, performance improved substantially: the SVC and LRM reached macro-F1 scores of 0.923 and 0.926 respectively, outperforming the RF model. Tuning C (Figure~\ref{fig:c}) then showed that both linear models perform wbetter with much stronger regularization, as both peak at $C \approx 0.03$ (default $1$). Here, the SVC reaches 0.953. We selected this model, retrained it on the training and development sets combined, and applied it once to the test set.
+Standardization is essential for the linear models. Without scaling, the SVC and LRM achieved macro-F1 scores of only 0.731 and 0.386 respectively on the development set. In contrast, the RF model remained unaffected, achieving a macro-F1 score of 0.890. However, after applying the scaler and retaining the default model settings, performance improved substantially: the SVC and LRM reached macro-F1 scores of 0.923 and 0.926 respectively, outperforming the RF model. Tuning C (Figure~\ref{fig:c}) then showed that both linear models perform better with much stronger regularization, as both peak at $C \approx 0.03$ (default $1$). Here, the SVC reaches 0.953. We selected this model, retrained it on the training and development sets combined, and applied it once to the test set.
 
 On the test set, the final model achieves a macro-F1 of 0.944 compared to 0.953 on the development set. This small drop from the development set is expected, since C was selected on it. Furthermore this small of a difference might be covered in noise. Specific mistakes will be discussed in section \ref{sec:discussion}.
 
@@ -115,11 +114,11 @@ Feature selection would likely bring little gain. For our final model, no group 
 \label{sec:discussion}
 
 \subsection*{Problems}
-One issue we faced was the fact that our scores were stuck being rather poor. This was resolved with the standard scalar and the non-linear RF model. Another issue we encountered was the fact that the apostrophies were annotated as \", causing our initial version for those features to fail. Furthermore, the standard size of the snippets and the fact they don't use newlines means that paragraph structure features don't apply here.
+One issue we faced was the fact that our scores were stuck being rather poor. This was resolved by standardizing the features with the StandardScaler. Another issue we encountered was the fact that the apostrophes were annotated as \texttt{"}, causing our initial version for those features to fail. Furthermore, the standard size of the snippets and the fact they don't use newlines means that paragraph structure features don't apply here.
 
 
 \subsection{Failure Analysis}
-On the test set, our classifier makes only 14 mistakes, for 267 snippets. To analyze these failures, we look at several different aspects. Firstly, per-author F1 ranges from 0.86 to 1.00, with no author failing badly. This means that our errors are spread out over all authors, rather than the model confusing a handful very badly, and the rest being perfect. Where the model is wrong, the margin between the score for the most likely author and second most likely author is 0.30, compared to a gap of 1.25 for correct answers. This means that the model is less confident when it makes mistakes. Finally, upon inspection of each mistakes' text, we note that 95, 141, 166, 179 all contain an author note, this might be stylistically different from the rest of that authors' text. These mistakes also had a larger margin. 
+On the test set, our classifier makes only 14 mistakes, for 267 snippets. To analyze these failures, we look at several different aspects. Firstly, per-author F1 ranges from 0.86 to 1.00, with no author failing badly. This means that our errors are spread out over all authors, rather than the model confusing a handful very badly, and the rest being perfect. Where the model is wrong, the margin between the score for the most likely author and second most likely author is 0.30, compared to a gap of 1.25 for correct answers. This means that the model is less confident when it makes mistakes. Finally, upon inspection of each mistakes' text, we note that snippets with ids 95, 141, 166 and 179 all contain an author note, this might be stylistically different from the rest of that authors' text. These mistakes also had a larger margin. 
 
 \subsection*{With 10 extra hours}
 With 10 extra hours we would regroup and recreate the dataset. Currently there is leakage between train, dev and test data, as the snippets of the same stories are shared between them. This is made worse by the fact that these snippets were created with overlap, meaning that actual overlapping parts of these sequences are also shared between train and test data. We would then redo our work on this cleaner dataset. Another thing we could tackle is trying more different features.
@@ -128,5 +127,5 @@ With 10 extra hours we would regroup and recreate the dataset. Currently there i
 Authors don't always write in the same style. In our failure analysis we saw that quite some of the remaining mistakes (4/14) were made when the snippet contained some opening or closing notes, written in a different style than their normal writing. Another challenge is that the topic the authors write on might be a confounding factor, especially for some features like n-grams. 
 
 \section{Conclusion}
-Overall, we believe that we created a classifer which, for this datasest, performs the task of authorship attribution really well. Tuning the regularization allowed us to keep all feature-groups in the final model, as the ablation study showed that each contributed at least to some degree. There were some issues with the data, which makes it hard for us to be fully confident in the exact performance. But dealing with this felt out of scope for this assignment. For future work this would be the most essential part to cover. 
+Overall, we believe that we created a classifier which, for this dataset, performs the task of authorship attribution really well. Tuning the regularization allowed us to keep all feature-groups in the final model, as the ablation study showed that each contributed at least to some degree. There were some issues with the data, which makes it hard for us to be fully confident in the exact performance. But dealing with this felt out of scope for this assignment. For future work this would be the most essential part to cover. 
 \end{document}
