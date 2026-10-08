@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[a4paper, margin=1.9cm]{geometry}
 \usepackage[hidelinks]{hyperref}
+\urlstyle{same}
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -17,7 +18,7 @@
 \twocolumn[{
     \vspace*{-1.8cm}
     \begin{center}
-        {\Large\bfseries Authorship Attribution- Assignment 3 }\\[0.3em]
+        {\Large\bfseries Authorship Attribution - Assignment 3}\\[0.3em]
         \large Group 28 \\[1em]
         \begin{tabular}{c@{\hspace{2em}}c}
             Martan van der Straaten & Miquel Bosch \\
@@ -28,7 +29,7 @@
 }]
 
 \section{Introduction and data}
-In this paper we train a model to do authorship attribution. Our data is a fragment of the PAN2020 dataset\footnote{\href{https://pan.webis.de/clef20/pan20-web/author-identification.html}{https://pan.webis.de/clef20/pan20-web/author-identification.html}}. The dataset contains fanfiction texts by 20 different authors. To create a model that can automatically predict which of these 20 authors wrote a given snippet, we set up a feature extractor, followed by some classification model. By choosing our features intelligently, and processing them properly, a fairly simple classifier achieves great performance on this task.
+In this paper we train a model to do authorship attribution. Our data is a fragment of the PAN2020 dataset\footnote{\href{https://pan.webis.de/clef20/pan20-web/author-identification.html}{https://pan.webis.de/clef20/pan20-web/author-identification.html}}. The dataset contains fanfiction texts by 20 different authors. To create a model that can automatically predict which of these 20 authors wrote a given snippet, we set up a feature extractor, followed by a classification model\footnote{\url{https://github.com/martan712/TxMM_assignment3}}. By choosing our features intelligently and processing them properly, a fairly simple classifier achieves great performance on this task.
 
 \section{Features}
 
@@ -37,12 +38,12 @@ We used 150 numerical features to represent the texts, divided in seven categori
 Our feature extractor follows this process:
 \begin{enumerate}
     \item Transform double quotes used in contractions to apostrophes
-    \item Apply a tokenizer at sentence and word level to extract words, sentences, paragraphs
+    \item Apply a tokenizer at sentence and word level to extract words, sentences and paragraphs
     \item Apply a POS tagger to obtain grammatical information
     \item Compute the feature vector by calculating the values for each feature
 \end{enumerate}
 
-For normalization, character counts are divided by the character count, lexical and regular-expression pattern counts by the alphabetic word count, POS counts by the total token count, and supersense counts by the number of matched noun/verb senses. Also, sentence-length measures are normalized by the number of sentences containing alphabetic words and document word and sentence counts are log-transformed, whereas paragraph count is retained as a raw count. Finally, undefined ratios and empty summary statistics return zero.
+For normalization, character counts are divided by the character count, lexical and regular-expression pattern counts by the alphabetic word count, POS counts by the total token count, and supersense counts by the number of matched noun/verb senses. Also, sentence-length measures are normalized by the number of sentences containing alphabetic words, and document word and sentence counts are log-transformed, whereas paragraph count is retained as a raw count. Finally, undefined ratios and empty summary statistics return zero.
 
 Table~\ref{tab:features} shows the number of features in each group, along with a description of their function. We chose these groups for the following reasons:
 \begin{itemize}
@@ -69,7 +70,7 @@ Table~\ref{tab:features} shows the number of features in each group, along with 
         Structural  &  8 & Document size, paragraph count and sentence-length distributions. \\
         Lexical     & 15 & Word-length distributions, vocabulary diversity and repetition. \\
         Syntactic   & 14 & Eleven coarse POS frequencies and three pronoun-person frequencies. \\
-        Informal    & 13 & Fanfiction conventions such as contractions, ellipse, stutters, etc..\\
+        Informal    & 13 & Fanfiction conventions such as contractions, ellipses and stutters.\\
         Semantic    & 58 & WordNet, sentence-level VADER sentiment, and ten NRC associations. \\
         \midrule
         Total       & 150 & \\
@@ -98,21 +99,21 @@ Throughout this report, we will evaluate our classifier with the macro-F1 score,
 \]
 where $P_a$ and $R_a$ are the precision and recall for author $a$, and $N = 20$ is the total number of authors.
 
-Standardization is essential for the linear models. Without scaling, the SVC and LRM achieved macro-F1 scores of only 0.731 and 0.386 respectively on the development set. In contrast, the RF model remained unaffected, achieving a macro-F1 score of 0.890. However, after applying the scaler and retaining the default model settings, performance improved substantially: the SVC and LRM reached macro-F1 scores of 0.923 and 0.926 respectively, outperforming the RF model. Tuning C (Figure~\ref{fig:c}) then showed that both linear models perform better with much stronger regularization, as both peak at $C \approx 0.03$ (default $1$). Here, the SVC reaches 0.953. We selected this model, retrained it on the training and development sets combined, and applied it once to the test set.
+Standardization is essential for the linear models. Without scaling, the SVC and LRM achieved macro-F1 scores of only 0.731 and 0.386 respectively on the development set. In contrast, the RF model remained unaffected, achieving a macro-F1 score of 0.890. However, after applying the scaler and retaining the default model settings, performance improved substantially: the SVC and LRM reached macro-F1 scores of 0.923 and 0.926 respectively, outperforming the RF model. Tuning $C$ (Figure~\ref{fig:c}) then showed that both linear models perform better with much stronger regularization, as both peak at $C \approx 0.03$ (default $1$). Here, the SVC reaches 0.953. We selected this model, retrained it on the training and development sets combined, and applied it once to the test set.
 
-On the test set, the final model achieves a macro-F1 of 0.944 compared to 0.953 on the development set. This small drop from the development set is expected, since C was selected on it. Furthermore this small of a difference might be covered in noise. The confusion matrix (Figure~\ref{fig:confusion}) shows that the 14 test errors fall in 14 different cells, so no pair of authors is systematically confused. However, with only 7-20 test snippets per author, the test set is arguably too small to reliably reveal such patterns. Specific mistakes will be discussed in Section~\ref{sec:discussion}.
+On the test set, the final model achieves a macro-F1 of 0.944 compared to 0.953 on the development set. This small drop from the development set is expected, since $C$ was selected on it. Furthermore, such a small difference may simply be due to noise. The confusion matrix (Figure~\ref{fig:confusion}) shows that the 14 test errors fall in 14 different cells, so no pair of authors is systematically confused. However, with only 7-20 test snippets per author, the test set is arguably too small to reliably reveal such patterns. Specific mistakes will be discussed in Section~\ref{sec:discussion}.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\columnwidth]{confusion_test.png}
-    \caption{Confusion matrix of the final SVC on the test set, normalized per true author. Authors are labelled A-T.}
+    \caption{Confusion matrix of the final SVC on the test set, normalized per true author. Authors are labeled A-T.}
     \label{fig:confusion}
 \end{figure}
 
 \section{Ablation and feature selection}
-The next step for us was to measure the contribution of each group. To do this, we retrain the final SVC with one group left out and evaluate it on the development set (Figure \ref{fig:ablation}). We note that every group contributes. The informal group is the most informative (0.953 drops to 0.883 without it), followed by punctuation (0.909) and then character frequencies (0.915).
+The next step for us was to measure the contribution of each group. To do this, we retrain the final SVC with one group left out and evaluate it on the development set (Figure~\ref{fig:ablation}). We note that every group contributes. The informal group is the most informative (0.953 drops to 0.883 without it), followed by punctuation (0.909) and then character frequencies (0.915).
 
-Feature selection would likely bring little gain. For our final model, no group is pure noise. Probably, the stronger  regularization already shrinks uninformative weights. A brief test with the untuned LRM, showed that removing the semantic, structure or syntactic group still improved the score. However for our final, tuned model, this does not seem to be the case. 
+Feature selection would likely bring little gain. For our final model, no group is pure noise. Probably, the stronger regularization already shrinks uninformative weights. A brief test with the untuned LRM showed that removing the semantic, structure or syntactic group still improved the score. However, for our final tuned model, this does not seem to be the case. 
 
 
 \begin{figure}[ht]
@@ -126,18 +127,25 @@ Feature selection would likely bring little gain. For our final model, no group 
 \label{sec:discussion}
 
 \subsection{Problems}
-One issue we faced was the fact that our scores were stuck being rather poor. This was resolved by standardizing the features with the StandardScaler. Another issue we encountered was the fact that the apostrophes were annotated as \texttt{"}, causing our initial version for those features to fail. Furthermore, the standard size of the snippets and the fact they don't use newlines means that paragraph structure features don't apply here: our paragraph count is 1 for every snippet. Finally, the development and test sets are small, with only 5-21 snippets per author, which makes per-author results and the confusion matrix hard to interpret.
+One issue we faced was the fact that our scores were stuck at a rather poor level. This was resolved by standardizing the features with the StandardScaler. Another issue we encountered was the fact that the apostrophes were annotated as \texttt{"}, causing our initial version for those features to fail. Furthermore, the standard size of the snippets and the fact that they contain no newlines mean that paragraph structure features don't apply here: our paragraph count is 1 for every snippet. Finally, the development and test sets are small, with only 5-21 snippets per author, which makes per-author results and the confusion matrix hard to interpret.
 
 
 \subsection{Failure Analysis}
-On the test set, our classifier makes only 14 mistakes, for 267 snippets. To analyze these failures, we look at several different aspects. Firstly, per-author F1 ranges from 0.86 to 1.00, with no author failing badly. The errors are spread over 9 of the 20 authors, with at most 3 for a single author, rather than the model confusing a handful of authors very badly. Where the model is wrong, the margin between the score for the most likely author and second most likely author is 0.30, compared to a gap of 1.25 for correct answers. This means that the model is less confident when it makes mistakes. Finally, upon inspection of each mistakes' text, we note that snippets with ids 95, 141, 166 and 179 all contain an author note, this might be stylistically different from the rest of that authors' text. 
+On the test set, our classifier makes only 14 mistakes on 267 snippets. To analyze these failures, we look at several different aspects. Firstly, per-author F1 ranges from 0.86 to 1.00, with no author failing badly. The errors are spread over 9 of the 20 authors, with at most 3 for a single author, rather than the model confusing a handful of authors very badly. Where the model is wrong, the margin between the score for the most likely author and the second most likely author is 0.30, compared to a gap of 1.25 for correct answers. This means that the model is less confident when it makes mistakes. Finally, upon inspection of each mistake's text, we note that snippets with IDs 95, 141, 166 and 179 all contain an author's note, which might be stylistically different from the rest of that author's text. 
 
 \subsection{With 10 extra hours}
 With 10 extra hours we would regroup and recreate the dataset. Currently there is leakage between train, dev and test data, as the snippets of the same stories are shared between them. This is made worse by the fact that these snippets were created with overlap, meaning that actual overlapping parts of these sequences are also shared between train and test data. We would then redo our work on this cleaner dataset. Another thing we could tackle is trying more different features.
 
 \subsection{Challenges in authorship attribution}
-Authors don't always write in the same style. In our failure analysis we saw that quite some of the remaining mistakes (4/14) were made when the snippet contained some opening or closing notes, written in a different style than their normal writing. Another challenge is that the topic the authors write on might be a confounding factor, especially for some features like n-grams. 
+Authors don't always write in the same style. In our failure analysis we saw that quite a few of the remaining mistakes (4/14) were made when the snippet contained some opening or closing notes, written in a different style than their normal writing. Another challenge is that the topic the authors write about might be a confounding factor, especially for some features like n-grams. 
 
 \section{Conclusion}
-Overall, we believe that we created a classifier which, for this dataset, performs the task of authorship attribution really well: the final SVC ($C \approx 0.03$) reaches a macro-F1 of 0.953 on the development set and 0.944 on the test set. Tuning the regularization allowed us to keep all feature-groups in the final model, as the ablation study showed that each contributed at least to some degree. There were some issues with the data, which makes it hard for us to be fully confident in the exact performance. But dealing with this felt out of scope for this assignment. For future work this would be the most essential part to cover. 
+Overall, we believe that we created a classifier which, for this dataset, performs the task of authorship attribution really well: the final SVC ($C \approx 0.03$) reaches a macro-F1 of 0.953 on the development set and 0.944 on the test set. Tuning the regularization allowed us to keep all feature groups in the final model, as the ablation study showed that each contributed at least to some degree. There were some issues with the data, which make it hard for us to be fully confident in the exact performance. However, dealing with this felt out of scope for this assignment. For future work this would be the most essential part to cover. 
+
+\newpage
+\twocolumn[{
+    \section*{AI Statement}
+    While working on this assignment we have used an AI chatbot to provide minor assistance with coding tasks. All code was verified and formatted to a usable standard. We also ran a spelling and grammar check, just before submitting it, which only modified minor words in the final report. The pre- and post-spelling check results can be seen in the same commit as this statement.
+}]
+
 \end{document}
