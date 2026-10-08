@@ -30,9 +30,17 @@ In this paper we train a model to do authorship attribution. Our data is a fragm
 
 \section{Features}
 
-We represented each fanfiction snippet using 150 numerical features in seven groups. The provided training, development, and test splits contain 2,138, 268, and 267 snippets, respectively, covering 20 authors. Only the text is passed to the feature extractor: author labels are used as targets, and snippet IDs are not input features. To address contraction encoding, we normalized double quotes occurring between ASCII letters to apostrophes, then applied NLTK sentence tokenization, word tokenization and English part-of-speech (POS) tagging. Laslty, lexical counts use lowercased alphabetic tokens, while punctuation remains available in the normalized text and token sequence.
+We used 150 numerical features to represent the texts, divided in seven categories. Our dataset was comprised of 2,138, 268 and 267 snippets for training, development and test purposes.
 
-Table~\ref{tab:features} summarizes the seven feature groups. Firstly, character and punctuation features capture surface writing conventions, while structural and lexical features describe organization and lexical preferences. Moreover, syntactic features capture grammatical patterns and narrative perspective, and informal-writing features target fanfiction conventions. At last, semantic features capture conceptual preferences and tone, but may also reflect topic and fandom.
+Our feature extractor follows this process:
+\begin{enumerate}
+    \item Transform double quotes used in contractions to apostrophes
+    \item Apply a tokenizer at sentence and word level to extract words, sentences, paragraphs
+    \item Apply a POS tagger to obtain grammatical information
+    \item Compute the feature vector by calculating the values for each feature
+\end{enumerate}
+
+Table~\ref{tab:features} shows the number of features in each group, along with a description of their function.
 
 \begin{table}[ht]
     \centering
@@ -56,7 +64,7 @@ Table~\ref{tab:features} summarizes the seven feature groups. Firstly, character
     \end{tabularx}
 \end{table}
 
-For normalization, character counts are divided by the character count, lexical and regular-expression pattern counts by the alphabetic word count, POS counts by the total token count, and supersense counts by the number of matched noun/verb senses. Also, sentence-length measures are normalized by the number of sentences containing alphabetic words and document word and sentence counts are log-transformed, whereas paragraph count is retained as a raw count. Finally, undefined ratios and empty summary statistics return zero, while StandardScaler is fitted on the training data within the classifier pipeline and scales the feature columns before classification so it does not restrict values to a fixed interval.
+For normalization, character counts are divided by the character count, lexical and regular-expression pattern counts by the alphabetic word count, POS counts by the total token count, and supersense counts by the number of matched noun/verb senses. Also, sentence-length measures are normalized by the number of sentences containing alphabetic words and document word and sentence counts are log-transformed, whereas paragraph count is retained as a raw count. Finally, undefined ratios and empty summary statistics return zero.
 
 \section{Classifier}
 For the classification task, we evaluated several models: a Linear Support Vector Classifier (SVC), a Logistic Regression Model (LRM), and a Random Forest (RF), all implemented using the scikit-learn library. Since many of the input features operate on different scales, and some of these models are sensitive to differences in feature magnitude, we standardized the features using scikit-learn's StandardScaler. This transformation centers each feature around zero and scales it to unit variance. Feature scaling massively improved the F1-score on the development set, as expected.
